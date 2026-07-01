@@ -1,5 +1,7 @@
 # bmp-reader
 
+![bmp-reader scanner payload decoding banner](docs/assets/bmp-reader-banner-simple.png)
+
 JS decoder for scanner payloads from the German Bundeseinheitlicher Medikationsplan (BMP).
 
 The package does not scan camera input or images. BMP printouts use a DataMatrix 2D barcode whose payload is compact ISO-8859-1 XML; this package starts after a scanner has already returned that payload text or bytes.

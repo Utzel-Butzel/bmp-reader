@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import bwipjs from "bwip-js/node";
 import { PNG } from "pngjs";
-import { readBarcodes } from "zxing-wasm/reader";
 import { BmpDecodeError, decodeBmp, decodeBmpPages } from "../src/index.ts";
 import {
   ABDA_SPEC_V23_ABBILDUNG_3,
@@ -15,6 +14,7 @@ import {
   V27_COMPATIBLE,
   V28_OFFICIAL_STYLE
 } from "./fixtures.ts";
+import { readBarcodes } from "./zxing.ts";
 
 describe("decodeBmp", () => {
   it("decodes the official KBV v2.8 example XML fixture", () => {

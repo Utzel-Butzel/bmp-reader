@@ -3,9 +3,9 @@ import { deflateSync, inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
 import bwipjs from "bwip-js/node";
 import { PNG } from "pngjs";
-import { readBarcodes } from "zxing-wasm/reader";
 import { BmpDecodeError, decodeBmp } from "../src/index.ts";
 import { KBV_V28_BEISPIEL_1, V27_COMPATIBLE } from "./fixtures.ts";
+import { readBarcodes } from "./zxing.ts";
 
 const KBV_ANLAGE3_V28_PDF = readFileSync(new URL("./fixtures/pdf/kbv-anlage3-v28.pdf", import.meta.url));
 const ABDA_ANLAGE3_V26_PDF = readFileSync(new URL("./fixtures/pdf/abda-anlage3-v26.pdf", import.meta.url));
