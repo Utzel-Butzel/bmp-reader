@@ -78,6 +78,35 @@ button {
   padding: 18px clamp(12px, 3vw, 28px) 28px;
 }
 
+.site-footer {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(12px, 3vw, 28px) 28px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.footer-links a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: var(--blue-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .input-pane,
 .result-pane {
   min-width: 0;
@@ -595,6 +624,10 @@ pre {
 
 @media (max-width: 720px) {
   .workspace {
+    padding-inline: 10px;
+  }
+
+  .site-footer {
     padding-inline: 10px;
   }
 
