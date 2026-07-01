@@ -34,6 +34,16 @@ console.log(combined.sections);
 
 `decodeBmp()` accepts a `string`, `Uint8Array`, or `ArrayBuffer`. Byte inputs are decoded with exact Latin-1 byte mapping.
 
+## Online Demo
+
+The static demo in `docs/` can be served directly by GitHub Pages:
+
+- GitHub Pages URL after enabling Pages: [utzel-butzel.github.io/bmp-reader](https://utzel-butzel.github.io/bmp-reader/)
+- Local preview: `npm run demo:dev`
+- Rebuild the browser decoder bundle: `npm run build:demo`
+
+The demo accepts pasted BMP payload XML, includes anonymized sample payloads, assembles multi-page examples, and shows the decoded plan as overview cards, medication rows, section items, warnings, JSON, and formatted XML.
+
 ## Scanner Integration
 
 Use a scanner or barcode library that can read DataMatrix codes and preserve the BMP payload as ISO-8859-1/Latin-1 data. BMP payloads are compact XML, but they are not UTF-8; German characters such as `ä`, `ö`, `ü`, `ß`, or `Ü` must survive as Latin-1 bytes.

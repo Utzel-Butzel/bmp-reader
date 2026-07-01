@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bmp-reader demo</title>
+    <meta
+      name="description"
+      content="Decode Bundeseinheitlicher Medikationsplan scanner payload XML with bmp-reader."
+    />
+    <link rel="icon" href="./assets/bmp-reader-banner-simple.png" />
+    <link rel="stylesheet" href="./assets/demo.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img src="./assets/bmp-reader-banner-simple.png" alt="" />
+        <div>
+          <p>Bundeseinheitlicher Medikationsplan</p>
+          <h1>bmp-reader demo</h1>
+        </div>
+      </div>
+      <a class="repo-link" href="https://github.com/Utzel-Butzel/bmp-reader">GitHub</a>
+    </header>
+
+    <main class="workspace">
+      <section class="input-pane" aria-labelledby="input-title">
+        <div class="pane-header">
+          <div>
+            <p class="eyebrow">Input</p>
+            <h2 id="input-title">Scanner XML</h2>
+          </div>
+          <span id="payload-count" class="count-pill">0 chars</span>
+        </div>
+
+        <div class="controls-grid">
+          <label class="field">
+            <span>Sample</span>
+            <select id="sample-select"></select>
+          </label>
+
+          <label class="toggle">
+            <input id="assemble-pages" type="checkbox" />
+            <span>Assemble pages</span>
+          </label>
+
+          <label class="toggle">
+            <input id="allow-unknown" type="checkbox" />
+            <span>Allow legacy versions</span>
+          </label>
+        </div>
+
+        <textarea
+          id="xml-input"
+          spellcheck="false"
+          aria-label="BMP payload XML"
+          placeholder="<MP v=&quot;028&quot; ...></MP>"
+        ></textarea>
+
+        <div class="action-row">
+          <button id="decode-button" type="button">Decode</button>
+          <button id="format-button" class="secondary" type="button">Format XML</button>
+          <button id="clear-button" class="ghost" type="button">Clear</button>
+        </div>
+      </section>
+
+      <section class="result-pane" aria-labelledby="result-title">
+        <div class="pane-header result-header">
+          <div>
+            <p class="eyebrow">Output</p>
+            <h2 id="result-title">Decoded plan</h2>
+          </div>
+          <div id="decode-status" class="status">Waiting for XML</div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Decoded BMP views">
+          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-tab="overview">
+            Overview
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="medications">
+            Medications
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="sections">
+            Sections
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="warnings">
+            Warnings
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="json">JSON</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="xml">XML</button>
+        </div>
+
+        <div id="panel-overview" class="tab-panel is-active" role="tabpanel"></div>
+        <div id="panel-medications" class="tab-panel" role="tabpanel"></div>
+        <div id="panel-sections" class="tab-panel" role="tabpanel"></div>
+        <div id="panel-warnings" class="tab-panel" role="tabpanel"></div>
+        <div id="panel-json" class="tab-panel" role="tabpanel"></div>
+        <div id="panel-xml" class="tab-panel" role="tabpanel"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./assets/demo.js"></script>
+  </body>
+</html>
