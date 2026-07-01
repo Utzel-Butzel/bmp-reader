@@ -6,6 +6,8 @@ JS decoder for scanner payloads from the German Bundeseinheitlicher Medikationsp
 
 The package does not scan camera input or images. BMP printouts use a DataMatrix 2D barcode whose payload is compact ISO-8859-1 XML; this package starts after a scanner has already returned that payload text or bytes.
 
+This package is part of the [AvatarMediKI project](https://www.interaktive-technologien.de/projekte/avatarmediki). More project context is available at [anabox-smart.de/ki](https://anabox-smart.de/ki).
+
 ## Install
 
 Install [`bmp-reader` from npm](https://www.npmjs.com/package/bmp-reader) with [`npm install`](https://docs.npmjs.com/cli/commands/npm-install):
@@ -50,6 +52,19 @@ Recommended scanner/decoder tools:
 - CLI or CI checks: [`dmtxread`](https://manpages.debian.org/wheezy/libdmtx-utils/dmtxread.1.en.html) from `libdmtx` is useful for DataMatrix-only fixture validation.
 - Native browser scanning: the [`BarcodeDetector`](https://developer.mozilla.org/en-US/docs/Web/API/Barcode_Detection_API) API can be useful where available, but feature-detect `BarcodeDetector.getSupportedFormats()` and only use it for BMP when `data_matrix` is supported in your target browsers.
 
+## BMP Version Support
+
+Version support refers to the XML `MP.v` attribute in the scanner payload.
+
+| BMP version | Default status | Notes |
+| --- | --- | --- |
+| `028` / v2.8 | Supported | Included in the default `supportedVersions`; covered by official/public fixtures. |
+| `027` / v2.7 | Supported | Included in the default `supportedVersions`; covered by specification examples. |
+| `026` / v2.6 | Opt-in compatibility | Not supported by default. Historical XML fixtures parse with `allowUnknownVersion: true`, but this is not claimed as full support. |
+| `023` / v2.3 | Opt-in compatibility | Not supported by default. Historical XML fixtures parse with `allowUnknownVersion: true`, but this is not claimed as full support. |
+| Other XML versions | Not supported by default | `decodeBmp()` throws `UNSUPPORTED_VERSION` unless `allowUnknownVersion` or a custom `supportedVersions` list is provided. |
+| Pipe-delimited `MP\|020\|...` | Not supported | This older non-XML carrier format is intentionally rejected. |
+
 ## API
 
 ### `decodeBmp(input, options?)`
@@ -84,6 +99,12 @@ Known error codes include:
 ## Notes
 
 The decoder preserves raw attributes and unknown attributes. It does not resolve PZN values or access an Arzneimitteldatenbank; PZN-only medication entries are returned with warnings because display data may need an external drug database.
+
+## Help Improve Test Fixtures
+
+Real-world BMP payloads help catch edge cases that official examples and synthetic fixtures miss. If you can share an anonymized Medikationsplan payload, please open an issue or pull request with the scanner text/bytes or compact XML plus the BMP version if you know it.
+
+Please only share data that is fully anonymized. Do not send real patient data, names, birth dates, insurance numbers, addresses, doctor or practice names, IDs, or identifying free-text notes. When in doubt, replace values with synthetic data while keeping the same XML structure.
 
 ## Development
 
