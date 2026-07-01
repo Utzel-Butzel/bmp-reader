@@ -6,9 +6,13 @@ The package does not scan camera input or images. BMP printouts use a DataMatrix
 
 ## Install
 
+Install [`bmp-reader` from npm](https://www.npmjs.com/package/bmp-reader) with [`npm install`](https://docs.npmjs.com/cli/commands/npm-install):
+
 ```sh
 npm install bmp-reader
 ```
+
+Requires Node.js 20 or newer.
 
 ## Usage
 
