@@ -1,0 +1,26 @@
+<MP v="028" U="B556E9F99632438786B100B8D96C0122" l="de-DE">
+	<P g="Michaela" f="Musterhausen" egk="B987563276" b="19361213" s="W" t="Dr." v="von" z="Freifrau" />
+	<A lanr="123456667" n="Praxis 2" s="Hauptstraße 55" z="01234" c="Am Ort" p="04562-12345" e="mue@praxis-ueberall.de" t="2026-07-01T12:00:00"/>
+	<O ai="Penicillin" w="85" />
+	<S>
+		<M f="Tabl" m="1" du="1" i="während der Mahlzeit" r="Bluthochdruck">
+			<W w="Ramipril" s="5 mg"/>
+		</M>
+		<M p="6453257" m="1" du="1" i="während der Mahlzeit" r="Bluthochdruck">	</M>
+		<M p="544786" m="20" v="10" du="p" i="subkutan" r="Diabetes"></M>
+	</S>
+	<S c="425">
+		<M p="3159468" wo="1" m="1" du="1" i="Alkoholkonsum vermeiden" r="Rheuma">
+		</M>
+		<M p="3971388" wo="2" m="1" du="1" r="Folsäure-Mangel">
+		</M>
+	</S>
+	<S c="411">
+		<M p="16357856" t="max. 3" du="5" i="akut" r="Herzschmerzen">
+		</M>
+	</S>
+	<S c="424">
+		<M p="8693497" m="1" d="1" v="1" du="1" i="alle 8 Stunden einnehmen" r="Nebenhöhlenentzündung" x="Sofort mit Einnahme beginnen, für 10 Tage (bis 10.07.2026)">
+		</M>
+	</S>
+</MP>
