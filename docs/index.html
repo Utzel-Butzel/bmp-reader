@@ -50,6 +50,39 @@
           </label>
         </div>
 
+        <section class="scanner-panel" aria-labelledby="scanner-title">
+          <div class="scanner-head">
+            <div>
+              <p class="eyebrow">Scanner</p>
+              <h3 id="scanner-title">DataMatrix</h3>
+            </div>
+            <span id="scanner-status" class="scanner-status">Idle</span>
+          </div>
+
+          <div class="scanner-grid">
+            <video id="camera-preview" playsinline muted></video>
+            <canvas id="camera-canvas" hidden></canvas>
+
+            <div class="scanner-controls">
+              <label class="field">
+                <span>Image file</span>
+                <input id="barcode-file" type="file" accept="image/*,.png,.jpg,.jpeg,.webp,.bmp" />
+              </label>
+
+              <label class="toggle">
+                <input id="append-scan" type="checkbox" />
+                <span>Append scans as pages</span>
+              </label>
+
+              <div class="action-row scanner-actions">
+                <button id="start-camera-button" class="secondary" type="button">Start camera</button>
+                <button id="scan-frame-button" class="secondary" type="button" disabled>Scan frame</button>
+                <button id="stop-camera-button" class="ghost" type="button" disabled>Stop camera</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <textarea
           id="xml-input"
           spellcheck="false"

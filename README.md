@@ -42,7 +42,7 @@ The static demo in `docs/` can be served directly by GitHub Pages:
 - Local preview: `npm run demo:dev`
 - Rebuild the browser decoder bundle: `npm run build:demo`
 
-The demo accepts pasted BMP payload XML, includes anonymized sample payloads, assembles multi-page examples, and shows the decoded plan as overview cards, medication rows, section items, warnings, JSON, and formatted XML.
+The demo accepts pasted BMP payload XML, reads DataMatrix barcodes from webcam or image files with `zxing-wasm`, includes anonymized sample payloads, assembles multi-page examples, and shows the decoded plan as overview cards, medication rows, section items, warnings, JSON, and formatted XML.
 
 ## Scanner Integration
 

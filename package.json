@@ -20,7 +20,10 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:demo": "rolldown src/index.ts --file docs/assets/bmp-reader.browser.js --format esm --platform browser --minify --sourcemap",
+    "build:demo": "npm run build:demo:decoder && npm run build:demo:scanner && npm run build:demo:wasm",
+    "build:demo:decoder": "rolldown src/index.ts --file docs/assets/bmp-reader.browser.js --format esm --platform browser --minify --sourcemap",
+    "build:demo:scanner": "rolldown demo/zxing-reader.ts --file docs/assets/zxing-reader.browser.js --format esm --platform browser --minify --sourcemap",
+    "build:demo:wasm": "cp node_modules/zxing-wasm/dist/reader/zxing_reader.wasm docs/assets/zxing_reader.wasm",
     "demo:dev": "vite --host 127.0.0.1 docs",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",

@@ -30,6 +30,7 @@ body {
 }
 
 button,
+input,
 select,
 textarea {
   font: inherit;
@@ -241,6 +242,15 @@ button:hover {
   background: var(--blue-dark);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+button:disabled:hover {
+  background: var(--blue);
+}
+
 button.secondary {
   color: var(--blue);
   border-color: rgba(37, 99, 235, 0.24);
@@ -252,6 +262,10 @@ button.secondary:hover,
   background: #e1edff;
 }
 
+button.secondary:disabled:hover {
+  background: #eef4ff;
+}
+
 button.ghost {
   color: var(--ink);
   border-color: var(--line);
@@ -260,6 +274,96 @@ button.ghost {
 
 button.ghost:hover {
   background: var(--surface-2);
+}
+
+button.ghost:disabled:hover {
+  background: transparent;
+}
+
+.scanner-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.scanner-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.scanner-head h3 {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.1;
+}
+
+.scanner-status {
+  max-width: 60%;
+  overflow-wrap: anywhere;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--muted);
+  background: var(--surface-2);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.scanner-status.is-ok {
+  color: var(--green);
+  background: #e9f7ef;
+}
+
+.scanner-status.is-error {
+  color: var(--red);
+  background: #fff0ed;
+}
+
+.scanner-grid {
+  display: grid;
+  grid-template-columns: minmax(128px, 0.62fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+#camera-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid #252f38;
+  border-radius: 8px;
+  background: #101820;
+  object-fit: cover;
+}
+
+#camera-preview:not(.is-active) {
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25% 50%, rgba(255, 255, 255, 0.05) 50% 75%, transparent 75%),
+    #101820;
+  background-size: 18px 18px;
+}
+
+.scanner-controls {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+input[type="file"] {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px;
+  background: #fffdf8;
+  color: var(--ink);
+}
+
+.scanner-actions {
+  gap: 8px;
 }
 
 .tabs {
@@ -368,6 +472,10 @@ button.ghost:hover {
   padding: 10px 12px;
   border-bottom: 1px solid #ece6d9;
   vertical-align: top;
+}
+
+.info-table td {
+  overflow-wrap: anywhere;
 }
 
 .info-table tr:last-child th,

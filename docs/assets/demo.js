@@ -1,6 +1,21 @@
 import { BmpDecodeError, decodeBmp, decodeBmpPages } from "./bmp-reader.browser.js";
+import { prepareZXingModule, readBarcodes } from "./zxing-reader.browser.js";
 
 const PAGE_SEPARATOR = "\n\n--- BMP PAGE ---\n\n";
+const ZXING_WASM_URL = new URL("./zxing_reader.wasm", import.meta.url).href;
+const ZXING_MODULE_OVERRIDES = {
+  locateFile: (path, prefix) => (path.endsWith(".wasm") ? ZXING_WASM_URL : `${prefix}${path}`)
+};
+const BARCODE_READER_OPTIONS = {
+  formats: ["DataMatrix"],
+  tryHarder: true,
+  tryRotate: true,
+  tryInvert: true,
+  tryDownscale: true,
+  maxNumberOfSymbols: 4,
+  textMode: "Plain",
+  characterSet: "ISO8859_1"
+};
 
 const samples = [
   {
@@ -30,7 +45,14 @@ const samples = [
 const state = {
   decoded: null,
   formattedXml: "",
-  activeTab: "overview"
+  activeTab: "overview",
+  loadingSample: false,
+  scanner: {
+    readyPromise: null,
+    stream: null,
+    scanTimer: 0,
+    scanInFlight: false
+  }
 };
 
 const elements = {
@@ -38,6 +60,14 @@ const elements = {
   xmlInput: document.querySelector("#xml-input"),
   assemblePages: document.querySelector("#assemble-pages"),
   allowUnknown: document.querySelector("#allow-unknown"),
+  appendScan: document.querySelector("#append-scan"),
+  barcodeFile: document.querySelector("#barcode-file"),
+  cameraPreview: document.querySelector("#camera-preview"),
+  cameraCanvas: document.querySelector("#camera-canvas"),
+  scannerStatus: document.querySelector("#scanner-status"),
+  startCameraButton: document.querySelector("#start-camera-button"),
+  scanFrameButton: document.querySelector("#scan-frame-button"),
+  stopCameraButton: document.querySelector("#stop-camera-button"),
   decodeButton: document.querySelector("#decode-button"),
   formatButton: document.querySelector("#format-button"),
   clearButton: document.querySelector("#clear-button"),
@@ -57,26 +87,44 @@ const elements = {
 init();
 
 function init() {
-  elements.sampleSelect.innerHTML = samples
-    .map((sample) => `<option value="${escapeHtml(sample.id)}">${escapeHtml(sample.label)}</option>`)
-    .join("");
+  elements.sampleSelect.innerHTML =
+    '<option value="custom">Custom / scanned XML</option>' +
+    samples.map((sample) => `<option value="${escapeHtml(sample.id)}">${escapeHtml(sample.label)}</option>`).join("");
 
   elements.sampleSelect.addEventListener("change", () => {
-    loadSample(elements.sampleSelect.value);
+    if (elements.sampleSelect.value !== "custom") {
+      loadSample(elements.sampleSelect.value);
+    }
   });
   elements.xmlInput.addEventListener("input", () => {
+    markCustomInput();
     updatePayloadCount();
+  });
+  elements.barcodeFile.addEventListener("change", () => {
+    scanSelectedFile();
+  });
+  elements.startCameraButton.addEventListener("click", () => {
+    startCamera();
+  });
+  elements.scanFrameButton.addEventListener("click", () => {
+    scanCameraFrame({ silent: false });
+  });
+  elements.stopCameraButton.addEventListener("click", () => {
+    stopCamera();
   });
   elements.decodeButton.addEventListener("click", () => {
     decodeCurrentInput();
   });
   elements.formatButton.addEventListener("click", () => {
     elements.xmlInput.value = formatPayloads(elements.xmlInput.value);
+    markCustomInput();
     updatePayloadCount();
     decodeCurrentInput();
   });
   elements.clearButton.addEventListener("click", () => {
     elements.xmlInput.value = "";
+    elements.sampleSelect.value = "custom";
+    elements.barcodeFile.value = "";
     state.decoded = null;
     state.formattedXml = "";
     updatePayloadCount();
@@ -97,6 +145,8 @@ function init() {
 async function loadSample(sampleId) {
   const sample = samples.find((entry) => entry.id === sampleId) ?? samples[0];
   try {
+    state.loadingSample = true;
+    elements.sampleSelect.value = sample.id;
     setStatus("Loading sample");
     const payloads = await Promise.all(sample.files.map((file) => fetchText(file)));
     elements.xmlInput.value = payloads.join(PAGE_SEPARATOR);
@@ -106,6 +156,8 @@ async function loadSample(sampleId) {
     decodeCurrentInput();
   } catch (error) {
     renderError(error);
+  } finally {
+    state.loadingSample = false;
   }
 }
 
@@ -115,6 +167,216 @@ async function fetchText(url) {
     throw new Error(`Could not load ${url} (${response.status}).`);
   }
   return (await response.text()).trim();
+}
+
+async function ensureBarcodeReader() {
+  if (!state.scanner.readyPromise) {
+    setScannerStatus("Loading ZXing");
+    state.scanner.readyPromise = prepareZXingModule({
+      overrides: ZXING_MODULE_OVERRIDES,
+      fireImmediately: true
+    });
+  }
+  await state.scanner.readyPromise;
+}
+
+async function scanSelectedFile() {
+  const file = elements.barcodeFile.files?.[0];
+  if (!file) {
+    return;
+  }
+  if (!isSupportedImageFile(file)) {
+    setScannerStatus("Choose an image file", "error");
+    return;
+  }
+
+  try {
+    setScannerStatus(`Scanning ${file.name}`);
+    const result = await scanBarcodeSource(file);
+    applyScannedBarcode(result, file.name);
+  } catch (error) {
+    setScannerStatus(error instanceof Error ? error.message : String(error), "error");
+  }
+}
+
+async function startCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setScannerStatus("Camera unavailable", "error");
+    return;
+  }
+
+  try {
+    setScannerStatus("Starting camera");
+    await ensureBarcodeReader();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
+    state.scanner.stream = stream;
+    elements.cameraPreview.srcObject = stream;
+    elements.cameraPreview.classList.add("is-active");
+    await elements.cameraPreview.play();
+    updateCameraControls(true);
+    setScannerStatus("Scanning camera");
+    scheduleCameraScan();
+  } catch (error) {
+    stopCamera({ keepStatus: true });
+    setScannerStatus(formatCameraError(error), "error");
+  }
+}
+
+function stopCamera(options = {}) {
+  if (state.scanner.scanTimer) {
+    window.clearTimeout(state.scanner.scanTimer);
+    state.scanner.scanTimer = 0;
+  }
+  if (state.scanner.stream) {
+    for (const track of state.scanner.stream.getTracks()) {
+      track.stop();
+    }
+  }
+  state.scanner.stream = null;
+  state.scanner.scanInFlight = false;
+  elements.cameraPreview.pause();
+  elements.cameraPreview.srcObject = null;
+  elements.cameraPreview.classList.remove("is-active");
+  updateCameraControls(false);
+  if (!options.keepStatus) {
+    setScannerStatus("Idle");
+  }
+}
+
+function scheduleCameraScan() {
+  if (!state.scanner.stream) {
+    return;
+  }
+  state.scanner.scanTimer = window.setTimeout(async () => {
+    await scanCameraFrame({ silent: true });
+    scheduleCameraScan();
+  }, 750);
+}
+
+async function scanCameraFrame(options = {}) {
+  if (!state.scanner.stream || state.scanner.scanInFlight) {
+    return;
+  }
+
+  const imageData = captureCameraImage();
+  if (!imageData) {
+    if (!options.silent) {
+      setScannerStatus("Camera not ready", "error");
+    }
+    return;
+  }
+
+  state.scanner.scanInFlight = true;
+  try {
+    const result = await scanBarcodeSource(imageData);
+    applyScannedBarcode(result, "camera");
+    stopCamera({ keepStatus: true });
+  } catch (error) {
+    if (!options.silent || !isNoBarcodeError(error)) {
+      setScannerStatus(error instanceof Error ? error.message : String(error), "error");
+    } else {
+      setScannerStatus("Scanning camera");
+    }
+  } finally {
+    state.scanner.scanInFlight = false;
+  }
+}
+
+function captureCameraImage() {
+  const video = elements.cameraPreview;
+  if (!video.videoWidth || !video.videoHeight) {
+    return null;
+  }
+
+  const maxSide = 1280;
+  const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
+  const width = Math.max(1, Math.round(video.videoWidth * scale));
+  const height = Math.max(1, Math.round(video.videoHeight * scale));
+  const canvas = elements.cameraCanvas;
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(video, 0, 0, width, height);
+  return context.getImageData(0, 0, width, height);
+}
+
+async function scanBarcodeSource(input) {
+  await ensureBarcodeReader();
+  const results = await readBarcodes(input, BARCODE_READER_OPTIONS);
+  const result = results.find((entry) => entry.isValid && entry.symbology === "DataMatrix");
+  if (!result) {
+    throw new Error("No DataMatrix code found");
+  }
+  return result;
+}
+
+function applyScannedBarcode(result, source) {
+  const payload = payloadFromBarcode(result).trim();
+  if (!payload) {
+    throw new Error("Barcode payload is empty");
+  }
+
+  const shouldAppend = elements.appendScan.checked && elements.xmlInput.value.trim();
+  elements.xmlInput.value = shouldAppend ? `${elements.xmlInput.value.trim()}${PAGE_SEPARATOR}${payload}` : payload;
+  if (shouldAppend) {
+    elements.assemblePages.checked = true;
+  }
+  elements.sampleSelect.value = "custom";
+  updatePayloadCount();
+  decodeCurrentInput();
+  setScannerStatus(`${result.format} from ${source}`, "ok");
+}
+
+function payloadFromBarcode(result) {
+  if (result.bytes?.length) {
+    return latin1BytesToString(result.bytes);
+  }
+  return result.text ?? "";
+}
+
+function latin1BytesToString(bytes) {
+  let output = "";
+  for (let index = 0; index < bytes.length; index += 8192) {
+    output += String.fromCharCode(...bytes.slice(index, index + 8192));
+  }
+  return output;
+}
+
+function isSupportedImageFile(file) {
+  return file.type.startsWith("image/") || /\.(bmp|gif|jpe?g|png|tiff?|webp)$/i.test(file.name);
+}
+
+function isNoBarcodeError(error) {
+  return error instanceof Error && error.message === "No DataMatrix code found";
+}
+
+function formatCameraError(error) {
+  if (error instanceof DOMException && error.name === "NotAllowedError") {
+    return "Camera permission denied";
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+function updateCameraControls(isRunning) {
+  elements.startCameraButton.disabled = isRunning;
+  elements.scanFrameButton.disabled = !isRunning;
+  elements.stopCameraButton.disabled = !isRunning;
+}
+
+function markCustomInput() {
+  if (!state.loadingSample) {
+    elements.sampleSelect.value = "custom";
+  }
 }
 
 function decodeCurrentInput() {
@@ -532,6 +794,12 @@ function setStatus(text, kind = "") {
   elements.status.textContent = text;
   elements.status.classList.toggle("is-ok", kind === "ok");
   elements.status.classList.toggle("is-error", kind === "error");
+}
+
+function setScannerStatus(text, kind = "") {
+  elements.scannerStatus.textContent = text;
+  elements.scannerStatus.classList.toggle("is-ok", kind === "ok");
+  elements.scannerStatus.classList.toggle("is-error", kind === "error");
 }
 
 function escapeHtml(value) {
